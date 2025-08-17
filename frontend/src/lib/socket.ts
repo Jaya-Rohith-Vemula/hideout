@@ -1,0 +1,75 @@
+import { io, Socket } from "socket.io-client"
+import type { ChatMessage } from "../state/chatStore"
+
+export type ServerToClientEvents = {
+  room_joined: (init: { messages: ChatMessage[] }) => void
+  message_new: (m: ChatMessage) => void
+}
+
+export type ClientToServerEvents = {
+  join_room: (payload: { roomId: string; anonSessionId: string }) => void
+  message_send: (payload: Omit<ChatMessage, "id" | "createdAt">) => void
+}
+
+let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null
+
+function pickBaseUrl() {
+  // Prefer explicit WS URL, otherwise fall back to API base
+  const envWs = import.meta.env.VITE_WS_URL as string | undefined
+  const envApi = import.meta.env.VITE_API_BASE_URL as string | undefined
+  return envWs ?? envApi
+}
+
+export function getSocket() {
+  if (socket) return socket
+
+  const base = pickBaseUrl()
+  socket = io(base, {
+    transports: ["websocket"],
+    withCredentials: false,
+    autoConnect: true,
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 500,
+    reconnectionDelayMax: 5000,
+    timeout: 10000,
+    path: "/socket.io",
+  })
+
+  if (import.meta.env.DEV) {
+    socket.on("connect_error", (err) =>
+      console.error("[socket] connect_error", err)
+    )
+    socket.on("disconnect", (reason) =>
+      console.log("[socket] disconnected", reason)
+    )
+    ;(socket as Socket).on("reconnect_attempt", (n) =>
+      console.log("[socket] reconnect_attempt", n)
+    )
+    ;(socket as Socket).on("reconnect", (n) =>
+      console.log("[socket] reconnected", n)
+    )
+  }
+  return socket
+}
+
+export function isConnected() {
+  return !!(socket && socket.connected)
+}
+
+export function closeSocket() {
+  if (socket) {
+    socket.close()
+    socket = null
+  }
+}
+
+export function joinRoom(roomId: string, anonSessionId: string) {
+  const s = getSocket()
+  s.emit("join_room", { roomId, anonSessionId })
+}
+
+export function sendMessage(payload: Omit<ChatMessage, "id" | "createdAt">) {
+  const s = getSocket()
+  s.emit("message_send", payload)
+}
