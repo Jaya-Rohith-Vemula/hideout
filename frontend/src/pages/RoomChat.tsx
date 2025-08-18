@@ -1,11 +1,21 @@
-// src/pages/RoomChat.tsx
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
-import { getSocket, joinRoom, leaveRoom, sendMessage } from "@/lib/socket"
+import {
+  getSocket,
+  joinRoom,
+  leaveRoom,
+  sendMessage,
+  sendTyping,
+} from "@/lib/socket"
 import { getAnonSessionId } from "@/lib/session"
 import { useChatStore, type ChatMessage } from "@/state/chatStore"
 import ChatMessageBubble from "@/components/ChatMessage"
 import RoomHeader from "@/components/RoomHeader"
+
+function displayName(id: string | undefined) {
+  if (!id) return "User"
+  return id.slice(0, 2).toUpperCase()
+}
 
 export default function RoomChat() {
   const { roomId = "" } = useParams()
@@ -14,6 +24,11 @@ export default function RoomChat() {
   const [joined, setJoined] = useState(false)
   const [text, setText] = useState("")
   const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  // map of other users currently typing -> expiry timestamp
+  const [typers, setTypers] = useState<Record<string, number>>({})
+  const typingTimer = useRef<number | undefined>(undefined)
+  const lastStartSent = useRef(0)
 
   useEffect(() => {
     const socket = getSocket()
@@ -34,13 +49,65 @@ export default function RoomChat() {
     // live messages
     socket.on("message_new", (m: ChatMessage) => addMessage(m))
 
+    // typing presence from others in the room
+    socket.on(
+      "typing_update",
+      ({
+        anonSessionId,
+        typing,
+      }: {
+        anonSessionId: string
+        typing: boolean
+      }) => {
+        if (anonSessionId === selfId) return
+        setTypers((prev) => {
+          const copy = { ...prev }
+          if (typing)
+            copy[anonSessionId] = Date.now() + 1500 // 1.5s expiry window
+          else delete copy[anonSessionId]
+          return copy
+        })
+      }
+    )
+
     return () => {
       // leave previous room before navigating away
       leaveRoom(roomId)
+      if (typingTimer.current) window.clearTimeout(typingTimer.current)
+      // send stop-typing on exit (best-effort)
+      sendTyping(roomId, selfId, false)
+
       socket.off("room_joined")
       socket.off("message_new")
+      socket.off("typing_update")
     }
   }, [roomId, selfId, addMessage, setMessages, clear])
+
+  // Periodically prune stale typers
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setTypers((prev) => {
+        const now = Date.now()
+        const out: Record<string, number> = {}
+        for (const [k, exp] of Object.entries(prev)) if (exp > now) out[k] = exp
+        return out
+      })
+    }, 1000)
+    return () => clearInterval(iv)
+  }, [])
+
+  const pingTyping = () => {
+    const now = Date.now()
+    // rate-limit start typing signal
+    if (now - lastStartSent.current > 1500) {
+      sendTyping(roomId, selfId, true)
+      lastStartSent.current = now
+    }
+    if (typingTimer.current) window.clearTimeout(typingTimer.current)
+    typingTimer.current = window.setTimeout(() => {
+      sendTyping(roomId, selfId, false)
+    }, 2000)
+  }
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -56,6 +123,7 @@ export default function RoomChat() {
     }
     sendMessage(msg)
     setText("")
+    sendTyping(roomId, selfId, false)
   }
 
   const onEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -64,6 +132,20 @@ export default function RoomChat() {
       send()
     }
   }
+
+  // Build a friendly label: e.g., "AB is typing…", "AB and CD are typing…", "AB, CD and 1 other are typing…"
+  const typingIds = Object.keys(typers).filter((id) => id !== selfId)
+  let typingLabel: string | null = null
+  if (typingIds.length === 1)
+    typingLabel = `${displayName(typingIds[0])} is typing…`
+  else if (typingIds.length === 2)
+    typingLabel = `${displayName(typingIds[0])} and ${displayName(
+      typingIds[1]
+    )} are typing…`
+  else if (typingIds.length > 2)
+    typingLabel = `${displayName(typingIds[0])}, ${displayName(
+      typingIds[1]
+    )} and ${typingIds.length - 2} others are typing…`
 
   return (
     <div className="h-[100dvh] p-4 sm:p-6 flex flex-col gap-4">
@@ -90,11 +172,33 @@ export default function RoomChat() {
           </div>
         </div>
 
+        {typingIds.length > 0 && (
+          <div className="px-2 py-1 text-xs text-neutral-500 flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {typingIds.slice(0, 5).map((id) => (
+                <div
+                  key={id}
+                  className="h-6 w-6 rounded-full grid place-items-center border bg-neutral-200 dark:bg-neutral-700 text-[10px]"
+                >
+                  {displayName(id)}
+                </div>
+              ))}
+            </div>
+            <span>{typingLabel}</span>
+          </div>
+        )}
+
         <div className="flex gap-2 pt-2 pb-[env(safe-area-inset-bottom)]">
           <input
             value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={onEnter}
+            onChange={(e) => {
+              setText(e.target.value)
+              pingTyping()
+            }}
+            onKeyDown={(e) => {
+              onEnter(e)
+              pingTyping()
+            }}
             placeholder="Type a message…"
             className="flex-1 rounded-2xl border px-3 py-2 bg-transparent"
           />

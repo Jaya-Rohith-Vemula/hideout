@@ -43,13 +43,11 @@ app.post("/api/rooms", async (req, res) => {
   try {
     const exists = await prisma.room.findUnique({ where: { id: roomId } })
     if (exists)
-      return res
-        .status(409)
-        .json({
-          error:
-            "A room with same ID already exists, please provide a different ID",
-          id: roomId,
-        })
+      return res.status(409).json({
+        error:
+          "A room with same ID already exists, please provide a different ID",
+        id: roomId,
+      })
 
     const room = await prisma.room.create({ data: { id: roomId } })
     return res.status(201).json({ id: room.id })
@@ -111,8 +109,24 @@ io.on("connection", (socket) => {
     const id = normalizeRoomId(roomId)
     if (!isValidRoomId(id)) return
     socket.leave(id)
-    console.log(`Socket left room ${id}`)
   })
+
+  socket.on(
+    "typing",
+    ({
+      roomId,
+      anonSessionId,
+      typing,
+    }: {
+      roomId: string
+      anonSessionId: string
+      typing: boolean
+    }) => {
+      const id = normalizeRoomId(roomId)
+      if (!isValidRoomId(id)) return
+      socket.to(id).emit("typing_update", { anonSessionId, typing })
+    }
+  )
 
   // message_send: validate, persist, broadcast
   socket.on(

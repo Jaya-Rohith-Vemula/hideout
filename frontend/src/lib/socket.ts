@@ -1,15 +1,21 @@
 import { io, Socket } from "socket.io-client"
-import type { ChatMessage } from "../state/chatStore"
+import type { ChatMessage } from "@/state/chatStore"
 
 export type ServerToClientEvents = {
   room_joined: (init: { messages: ChatMessage[] }) => void
   message_new: (m: ChatMessage) => void
+  typing_update: (payload: { anonSessionId: string; typing: boolean }) => void
 }
 
 export type ClientToServerEvents = {
   join_room: (payload: { roomId: string; anonSessionId: string }) => void
   leave_room: (payload: { roomId: string }) => void
   message_send: (payload: Omit<ChatMessage, "id" | "createdAt">) => void
+  typing: (payload: {
+    roomId: string
+    anonSessionId: string
+    typing: boolean
+  }) => void
 }
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null
@@ -72,4 +78,13 @@ export function sendMessage(payload: Omit<ChatMessage, "id" | "createdAt">) {
 export function leaveRoom(roomId: string) {
   const s = getSocket()
   s.emit("leave_room", { roomId })
+}
+
+export function sendTyping(
+  roomId: string,
+  anonSessionId: string,
+  typing: boolean
+) {
+  const s = getSocket()
+  s.emit("typing", { roomId, anonSessionId, typing })
 }
