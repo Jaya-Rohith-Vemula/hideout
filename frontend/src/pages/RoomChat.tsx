@@ -11,6 +11,7 @@ import { getAnonSessionId } from "@/lib/session"
 import { useChatStore, type ChatMessage } from "@/state/chatStore"
 import ChatMessageBubble from "@/components/ChatMessage"
 import RoomHeader from "@/components/RoomHeader"
+import TypingBubble from "@/components/TypingBubble"
 
 function displayName(id: string | undefined) {
   if (!id) return "User"
@@ -111,7 +112,7 @@ export default function RoomChat() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages.length])
+  }, [messages.length, typers])
 
   const send = () => {
     const t = text.trim()
@@ -135,17 +136,7 @@ export default function RoomChat() {
 
   // Build a friendly label: e.g., "AB is typing…", "AB and CD are typing…", "AB, CD and 1 other are typing…"
   const typingIds = Object.keys(typers).filter((id) => id !== selfId)
-  let typingLabel: string | null = null
-  if (typingIds.length === 1)
-    typingLabel = `${displayName(typingIds[0])} is typing…`
-  else if (typingIds.length === 2)
-    typingLabel = `${displayName(typingIds[0])} and ${displayName(
-      typingIds[1]
-    )} are typing…`
-  else if (typingIds.length > 2)
-    typingLabel = `${displayName(typingIds[0])}, ${displayName(
-      typingIds[1]
-    )} and ${typingIds.length - 2} others are typing…`
+  const typingNames = typingIds.map(displayName)
 
   return (
     <div className="h-[100dvh] p-4 sm:p-6 flex flex-col gap-4">
@@ -168,25 +159,11 @@ export default function RoomChat() {
                 selfId={selfId}
               />
             ))}
+            {/* Typing as a chat bubble (like WhatsApp/Messenger) */}
+            {typingNames.length > 0 && <TypingBubble names={typingNames} />}
             <div ref={bottomRef} />
           </div>
         </div>
-
-        {typingIds.length > 0 && (
-          <div className="px-2 py-1 text-xs text-neutral-500 flex items-center gap-2">
-            <div className="flex -space-x-2">
-              {typingIds.slice(0, 5).map((id) => (
-                <div
-                  key={id}
-                  className="h-6 w-6 rounded-full grid place-items-center border bg-neutral-200 dark:bg-neutral-700 text-[10px]"
-                >
-                  {displayName(id)}
-                </div>
-              ))}
-            </div>
-            <span>{typingLabel}</span>
-          </div>
-        )}
 
         <div className="flex gap-2 pt-2 pb-[env(safe-area-inset-bottom)]">
           <input
