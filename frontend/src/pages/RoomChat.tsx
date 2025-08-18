@@ -69,12 +69,15 @@ export default function RoomChat() {
     <div className="h-[100dvh] p-4 sm:p-6 flex flex-col gap-4">
       <RoomHeader roomId={roomId} />
 
-      <div className="flex-1 rounded-2xl border p-4 bg-white/70 dark:bg-black/40 backdrop-blur flex flex-col">
+      <div className="flex-1 rounded-2xl border p-4 bg-white/70 dark:bg-black/40 backdrop-blur flex flex-col min-h-0">
         <div className="text-xs text-neutral-500 flex gap-4">
-          <span>Room: {joined ? "Joined" : "Joining…"}</span>
+          <span>Status: {joined ? "Joined" : "Joining…"}</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60">
+        <div
+          className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60"
+          id="chat-messages"
+        >
           <div className="px-2">
             {messages.map((m) => (
               <ChatMessageBubble

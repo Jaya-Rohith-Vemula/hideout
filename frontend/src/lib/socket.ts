@@ -14,18 +14,12 @@ export type ClientToServerEvents = {
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null
 
-function pickBaseUrl() {
-  // Prefer explicit WS URL, otherwise fall back to API base
-  const envWs = import.meta.env.VITE_WS_URL as string | undefined
-  const envApi = import.meta.env.VITE_API_BASE_URL as string | undefined
-  return envWs ?? envApi
-}
+const envWs = import.meta.env.VITE_WS_URL as string | undefined
 
 export function getSocket() {
   if (socket) return socket
 
-  const base = pickBaseUrl()
-  socket = io(base, {
+  socket = io(envWs, {
     transports: ["websocket"],
     withCredentials: false,
     autoConnect: true,

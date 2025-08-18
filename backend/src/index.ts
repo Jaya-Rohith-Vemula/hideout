@@ -14,6 +14,50 @@ app.use(cors({ origin: corsOrigins, credentials: false }))
 
 app.get("/health", (_req, res) => res.json({ ok: true }))
 
+app.post("/api/rooms", async (req, res) => {
+  let { roomId } = req.body || {}
+
+  // If client didn't provide an ID, we'll allocate a unique short ID
+  if (!roomId) {
+    const MAX_TRIES = 10
+    for (let i = 0; i < MAX_TRIES; i++) {
+      const newRoomID = normalizeRoomId(generateRoomId())
+      const exists = await prisma.room.findUnique({ where: { id: newRoomID } })
+      if (!exists) {
+        const room = await prisma.room.create({ data: { id: newRoomID } })
+        return res.status(201).json({ id: room.id })
+      }
+    }
+    return res
+      .status(503)
+      .json({ error: "Could not allocate a unique room id, please try again." })
+  }
+
+  // Custom ID path: validate & ensure it is not already taken
+  roomId = normalizeRoomId(roomId)
+  if (!isValidRoomId(roomId))
+    return res
+      .status(400)
+      .json({ error: "Invalid roomId (use 4–6 characters with a–z, 0–9)" })
+
+  try {
+    const exists = await prisma.room.findUnique({ where: { id: roomId } })
+    if (exists)
+      return res
+        .status(409)
+        .json({
+          error:
+            "A room with same ID already exists, please provide a different ID",
+          id: roomId,
+        })
+
+    const room = await prisma.room.create({ data: { id: roomId } })
+    return res.status(201).json({ id: room.id })
+  } catch (e) {
+    return res.status(500).json({ error: "Failed to create room" })
+  }
+})
+
 // ---- HTTP + Socket.IO ----
 const httpServer = createServer(app)
 const io = new IOServer(httpServer, {

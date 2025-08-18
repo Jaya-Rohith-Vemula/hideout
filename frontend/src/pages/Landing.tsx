@@ -1,23 +1,55 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { generateRoomId, normalizeRoomId, isValidRoomId } from "../lib/roomId"
+import { normalizeRoomId, isValidRoomId } from "@/lib/roomId"
+import { createRoom } from "@/lib/api"
 
 export default function Landing() {
   const nav = useNavigate()
 
+  // Creation mode: "random" vs "custom"
   const [mode, setMode] = useState<"random" | "custom">("random")
   const [customId, setCustomId] = useState("")
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
 
+  // Join input
   const [joinId, setJoinId] = useState("")
 
-  const onCreateRandom = () => {
-    const id = generateRoomId()
-    nav(`/r/${id}`)
+  const onCreateRandom = async () => {
+    setCreateError(null)
+    setCreating(true)
+    try {
+      // Let BE allocate a unique ID so user never sees "ID taken"
+      const { id } = await createRoom()
+      nav(`/r/${id}`)
+    } catch (e) {
+      const message =
+        e instanceof Error
+          ? e.message
+          : "Could not create room. Please try again."
+      setCreateError(message)
+    } finally {
+      setCreating(false)
+    }
   }
 
-  const onCreateCustom = () => {
+  const onCreateCustom = async () => {
+    setCreateError(null)
     const id = normalizeRoomId(customId)
-    if (isValidRoomId(id)) nav(`/r/${id}`)
+    if (!isValidRoomId(id)) return
+    setCreating(true)
+    try {
+      const res = await createRoom(id) // BE checks uniqueness
+      nav(`/r/${res.id}`)
+    } catch (e) {
+      const message =
+        e instanceof Error
+          ? e.message
+          : "Could not create room. Please try again."
+      setCreateError(message)
+    } finally {
+      setCreating(false)
+    }
   }
 
   const onJoin = () => {
@@ -33,10 +65,9 @@ export default function Landing() {
     <div className="min-h-screen grid place-items-center p-6">
       <div className="w-full max-w-md p-6 rounded-2xl border bg-white/70 dark:bg-black/40 backdrop-blur space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Hide Out</h1>
-        <h3>A private digital hideout, perfect for secret chats.</h3>
         <p className="text-sm text-neutral-500">
           Create an unlisted room or join one by ID. Room IDs are 4–6 characters
-          (a-z, 0–9).
+          (a–z, 0–9).
         </p>
 
         <div className="space-y-3">
@@ -67,13 +98,14 @@ export default function Landing() {
             <div className="grid gap-2">
               <button
                 onClick={onCreateRandom}
-                className="rounded-2xl px-4 py-2 bg-black text-white dark:bg-white dark:text-black"
+                disabled={creating}
+                className="rounded-2xl px-4 py-2 bg-black text-white dark:bg-white dark:text-black disabled:opacity-60"
               >
-                Create Room
+                {creating ? "Creating…" : "Create random room"}
               </button>
               <p className="text-xs text-neutral-500">
-                We’ll generate a 4–6 character ID like <code>7q4k</code> or{" "}
-                <code>n2x8c1</code>.
+                We’ll generate a unique 4–6 character ID like <code>7q4k</code>{" "}
+                or <code>n2x8c1</code>.
               </p>
             </div>
           ) : (
@@ -89,10 +121,12 @@ export default function Landing() {
                 />
                 <button
                   onClick={onCreateCustom}
-                  disabled={!isValidRoomId(normalizeRoomId(customId))}
+                  disabled={
+                    !isValidRoomId(normalizeRoomId(customId)) || creating
+                  }
                   className="rounded-2xl px-4 py-2 border disabled:opacity-50"
                 >
-                  Create
+                  {creating ? "Creating…" : "Create"}
                 </button>
               </div>
               <p className="text-xs text-neutral-500">
@@ -100,6 +134,8 @@ export default function Landing() {
               </p>
             </div>
           )}
+
+          {createError && <p className="text-xs text-red-500">{createError}</p>}
         </div>
 
         <div className="grid gap-2">
@@ -120,7 +156,7 @@ export default function Landing() {
         </div>
 
         <p className="text-xs text-neutral-500">
-          No login needed. Share the room link with your [XXX] to start
+          No login needed. Share the room link with your friend to start
           chatting.
         </p>
       </div>
