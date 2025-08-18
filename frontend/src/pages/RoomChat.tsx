@@ -112,7 +112,7 @@ export default function RoomChat() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages.length, typers])
+  }, [messages.length])
 
   const send = () => {
     const t = text.trim()
@@ -148,7 +148,7 @@ export default function RoomChat() {
         </div>
 
         <div
-          className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60"
+          className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60 pb-12 scroll-pb-12"
           id="chat-messages"
         >
           <div className="px-2">
