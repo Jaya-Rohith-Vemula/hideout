@@ -8,6 +8,7 @@ export type ServerToClientEvents = {
 
 export type ClientToServerEvents = {
   join_room: (payload: { roomId: string; anonSessionId: string }) => void
+  leave_room: (payload: { roomId: string }) => void
   message_send: (payload: Omit<ChatMessage, "id" | "createdAt">) => void
 }
 
@@ -72,4 +73,9 @@ export function joinRoom(roomId: string, anonSessionId: string) {
 export function sendMessage(payload: Omit<ChatMessage, "id" | "createdAt">) {
   const s = getSocket()
   s.emit("message_send", payload)
+}
+
+export function leaveRoom(roomId: string) {
+  const s = getSocket()
+  s.emit("leave_room", { roomId })
 }

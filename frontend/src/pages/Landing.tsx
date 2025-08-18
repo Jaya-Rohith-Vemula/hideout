@@ -83,7 +83,7 @@ export default function Landing() {
                 <input
                   value={customId}
                   onChange={(e) => setCustomId(normalizeRoomId(e.target.value))}
-                  placeholder="e.g. CHAT4"
+                  placeholder="e.g. chat4"
                   className="flex-1 rounded-2xl border px-3 py-2 bg-transparent tracking-wider"
                   maxLength={6}
                 />
@@ -120,7 +120,7 @@ export default function Landing() {
         </div>
 
         <p className="text-xs text-neutral-500">
-          No login needed. Share the room link with your friend to start
+          No login needed. Share the room link with your [XXX] to start
           chatting.
         </p>
       </div>

@@ -1,49 +1,42 @@
+// src/pages/RoomChat.tsx
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { getSocket, joinRoom, sendMessage } from "../lib/socket"
-import { getAnonSessionId } from "../lib/session"
-import { useChatStore, type ChatMessage } from "../state/chatStore"
-import ChatMessageBubble from "../components/ChatMessage"
-import RoomHeader from "../components/RoomHeader"
-import { normalizeRoomId, isValidRoomId } from "../lib/roomId"
+import { useParams } from "react-router-dom"
+import { getSocket, joinRoom, leaveRoom, sendMessage } from "@/lib/socket"
+import { getAnonSessionId } from "@/lib/session"
+import { useChatStore, type ChatMessage } from "@/state/chatStore"
+import ChatMessageBubble from "@/components/ChatMessage"
+import RoomHeader from "@/components/RoomHeader"
 
 export default function RoomChat() {
   const { roomId = "" } = useParams()
   const selfId = useMemo(() => getAnonSessionId(), [])
   const { messages, addMessage, setMessages, clear } = useChatStore()
-  const [connected, setConnected] = useState(false)
+  const [joined, setJoined] = useState(false)
   const [text, setText] = useState("")
   const bottomRef = useRef<HTMLDivElement | null>(null)
-
-  const nav = useNavigate()
-  useEffect(() => {
-    const normalized = normalizeRoomId(roomId || "")
-    if (!isValidRoomId(normalized)) {
-      nav("/", { replace: true })
-    }
-  }, [roomId, nav])
 
   useEffect(() => {
     const socket = getSocket()
 
-    const onConnect = () => setConnected(true)
-    const onDisconnect = () => setConnected(false)
+    // reflect socket-level connectivity immediately on route change
+    setJoined(false)
 
-    socket.on("connect", onConnect)
-    socket.on("disconnect", onDisconnect)
-
+    // join this room
     joinRoom(roomId, selfId)
 
+    // initial history signals "joined" when it arrives
     socket.on("room_joined", (init: { messages: ChatMessage[] }) => {
       clear()
       setMessages(init?.messages || [])
+      setJoined(true)
     })
 
+    // live messages
     socket.on("message_new", (m: ChatMessage) => addMessage(m))
 
     return () => {
-      socket.off("connect", onConnect)
-      socket.off("disconnect", onDisconnect)
+      // leave previous room before navigating away
+      leaveRoom(roomId)
       socket.off("room_joined")
       socket.off("message_new")
     }
@@ -54,12 +47,12 @@ export default function RoomChat() {
   }, [messages.length])
 
   const send = () => {
-    const trimmedText = text.trim()
-    if (!trimmedText) return
+    const t = text.trim()
+    if (!t) return
     const msg: Omit<ChatMessage, "id" | "createdAt"> = {
       roomId,
       senderAnonSessionId: selfId,
-      content: trimmedText,
+      content: t,
     }
     sendMessage(msg)
     setText("")
@@ -75,9 +68,10 @@ export default function RoomChat() {
   return (
     <div className="h-[100dvh] p-4 sm:p-6 flex flex-col gap-4">
       <RoomHeader roomId={roomId} />
+
       <div className="flex-1 rounded-2xl border p-4 bg-white/70 dark:bg-black/40 backdrop-blur flex flex-col">
-        <div className="text-xs text-neutral-500">
-          Status: {connected ? "Connected" : "Disconnected"}
+        <div className="text-xs text-neutral-500 flex gap-4">
+          <span>Room: {joined ? "Joined" : "Joining…"}</span>
         </div>
 
         <div className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60">
