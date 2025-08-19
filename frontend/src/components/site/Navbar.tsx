@@ -12,17 +12,15 @@ export default function Navbar() {
           <span className="font-semibold tracking-tight">Hide Out</span>
         </div>
         <div className="flex items-center gap-2">
-          <a href="#join">
-            <Button variant="ghost" size="sm">
-              Join
-            </Button>
-          </a>
           <a href="#">
             <Button variant="ghost" size="sm">
               Docs
             </Button>
           </a>
-          <a href="#">
+          <a
+            href="https://github.com/Jaya-Rohith-Vemula/hideout"
+            target="_blank"
+          >
             <Button variant="outline" size="sm">
               GitHub
             </Button>
