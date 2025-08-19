@@ -298,7 +298,7 @@ export default function Landing() {
                   <LockKeyhole className="h-5 w-5" /> 3. Chat
                 </CardTitle>
                 <CardDescription>
-                  Type away. Typing indicators, short history, and a clean UI.
+                  Type away. Typing indicators, history, and a clean UI.
                 </CardDescription>
               </CardHeader>
             </Card>
