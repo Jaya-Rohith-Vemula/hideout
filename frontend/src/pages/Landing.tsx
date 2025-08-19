@@ -34,6 +34,7 @@ export default function Landing() {
 
   // Join
   const [joinId, setJoinId] = useState("")
+
   const onCreateRandom = async () => {
     try {
       setError(null)
@@ -57,6 +58,8 @@ export default function Landing() {
     if (!isValidRoomId(id))
       return setError("Use 4–6 letters/numbers, e.g. CH4T")
     try {
+      setError(null)
+      setCreating(true)
       const res = await createRoom(id)
       nav(`/r/${res.id}`)
     } catch (e) {
@@ -109,18 +112,36 @@ export default function Landing() {
               Create a secret room in seconds and share a short link. No app
               installs. No logins. Just chat.
             </p>
-            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center animate-float">
-              <Button size="lg" onClick={onCreateRandom} disabled={creating}>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                size="lg"
+                onClick={onCreateRandom}
+                disabled={creating}
+                className="animate-float"
+                style={{ cursor: "pointer" }}
+              >
                 <Sparkles className="h-4 w-4 mr-2" />
                 {creating ? "Creating…" : "Instant room"}
               </Button>
-              <Button size="lg" variant="outline" onClick={onFocusCustomInput}>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={onFocusCustomInput}
+                className="animate-float"
+                style={{ animationDelay: "200ms", cursor: "pointer" }}
+              >
                 <AppWindow className="h-4 w-4 mr-2" /> Custom Room
               </Button>
-              <Button size="lg" onClick={onFocusJoinInput}>
+              <Button
+                size="lg"
+                onClick={onFocusJoinInput}
+                className="animate-float"
+                style={{ animationDelay: "400ms", cursor: "pointer" }}
+              >
                 <MousePointerClick className="h-4 w-4 mr-2" /> Join a room
               </Button>
             </div>
+            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
           </div>
         </section>
 
@@ -193,6 +214,7 @@ export default function Landing() {
                     disabled={
                       creating || !isValidRoomId(normalizeRoomId(customId))
                     }
+                    style={{ cursor: "pointer" }}
                   >
                     Create
                   </Button>
@@ -225,11 +247,11 @@ export default function Landing() {
                     className=" tracking-widest"
                   />
                   <Button
-                    variant="outline"
                     onClick={onJoin}
                     disabled={
                       creating || !isValidRoomId(normalizeRoomId(joinId))
                     }
+                    style={{ cursor: "pointer" }}
                   >
                     Join
                   </Button>

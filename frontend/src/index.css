@@ -174,4 +174,17 @@
   .cc-typing-dot:nth-child(3) {
     animation-delay: 0.4s;
   }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  .animate-float {
+    animation: float 2s ease-in-out infinite;
+  }
 }
