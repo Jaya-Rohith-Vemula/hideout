@@ -1,9 +1,15 @@
+import { toast } from "sonner"
+
 export default function RoomHeader({ roomId }: { roomId: string }) {
   const handleShare = async () => {
     const url = `${location.origin}/r/${roomId}`
     try {
       await navigator.clipboard.writeText(url)
-      alert("Room link copied!")
+      toast.success("Link copied", {
+        description: "Room link copied to clipboard.",
+        position: "top-center",
+        closeButton: true,
+      })
     } catch {
       prompt("Copy room link:", url)
     }
