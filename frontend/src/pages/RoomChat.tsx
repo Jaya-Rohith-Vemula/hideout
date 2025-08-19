@@ -147,22 +147,27 @@ export default function RoomChat() {
           <span>Status: {joined ? "Joined" : "Joining…"}</span>
         </div>
 
-        <div
-          className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60 pb-12 scroll-pb-12"
-          id="chat-messages"
-        >
-          <div className="px-2">
-            {messages.map((m) => (
-              <ChatMessageBubble
-                key={m.id + m.createdAt}
-                m={m}
-                selfId={selfId}
-              />
-            ))}
-            {/* Typing as a chat bubble (like WhatsApp/Messenger) */}
-            {typingNames.length > 0 && <TypingBubble names={typingNames} />}
-            <div ref={bottomRef} />
+        <div className="flex flex-col flex-1 justify-end min-h-0 relative">
+          <div
+            className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60 scroll-pb-12"
+            id="chat-messages"
+          >
+            <div className="px-2">
+              {messages.map((m) => (
+                <ChatMessageBubble
+                  key={m.id + m.createdAt}
+                  m={m}
+                  selfId={selfId}
+                />
+              ))}
+              <div ref={bottomRef} />
+            </div>
           </div>
+          {typingNames.length > 0 && (
+            <div className="absolute left-0 right-0 bottom-0 px-4 pb-2 z-10">
+              <TypingBubble names={typingNames} />
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2 pt-2 pb-[env(safe-area-inset-bottom)]">
