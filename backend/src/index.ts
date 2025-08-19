@@ -85,11 +85,9 @@ io.on("connection", (socket) => {
     // Join socket room
     socket.join(id)
 
-    // Load last 50 messages
     const recent = await prisma.message.findMany({
       where: { roomId: id },
       orderBy: { createdAt: "asc" },
-      take: 50,
     })
     const payload = recent.map(
       (message): ChatMessage => ({
