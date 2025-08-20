@@ -1,6 +1,10 @@
+import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
+import { DoorOpen, Clipboard } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function RoomHeader({ roomId }: { roomId: string }) {
+  const nav = useNavigate()
   const handleShare = async () => {
     const url = `${location.origin}/r/${roomId}`
     try {
@@ -21,12 +25,23 @@ export default function RoomHeader({ roomId }: { roomId: string }) {
         <h1 className="text-lg font-semibold tracking-tight">Room</h1>
         <p className="text-xs text-neutral-500">ID: {roomId}</p>
       </div>
-      <button
-        onClick={handleShare}
-        className="px-3 py-2 text-sm rounded-2xl bg-black text-white dark:bg-white dark:text-black"
-      >
-        Share
-      </button>
+      <div>
+        <div className="flex flex-row gap-3">
+          <Button
+            size="lg"
+            style={{ cursor: "pointer" }}
+            onClick={() => nav("/")}
+          >
+            Leave
+            <DoorOpen />
+          </Button>
+
+          <Button size="lg" style={{ cursor: "pointer" }} onClick={handleShare}>
+            Share
+            <Clipboard />
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

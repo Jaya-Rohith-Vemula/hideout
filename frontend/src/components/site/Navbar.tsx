@@ -1,5 +1,6 @@
 import { MessageSquare } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import ThemeToggle from "./ThemeToggle"
 
 export default function Navbar() {
   return (
@@ -12,6 +13,7 @@ export default function Navbar() {
           <span className="font-semibold tracking-tight">Hide Out</span>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <a href="https://x.com/Rohith_Vemula99" target="_blank">
             <Button variant="ghost" size="sm" style={{ cursor: "pointer" }}>
               Connect

@@ -1,6 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      ;(function () {
+        try {
+          var KEY = "cc-theme"
+          var stored = localStorage.getItem(KEY) // 'light' | 'dark' | null
+          var prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches
+          var theme = stored || (prefersDark ? "dark" : "light")
+          if (theme === "dark") document.documentElement.classList.add("dark")
+          document.documentElement.style.colorScheme = theme
+        } catch (_) {}
+      })()
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/message-square.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

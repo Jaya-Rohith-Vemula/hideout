@@ -127,7 +127,7 @@ export default function RoomChat() {
     sendTyping(roomId, selfId, false)
   }
 
-  const onEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const onEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       send()
@@ -137,6 +137,25 @@ export default function RoomChat() {
   // Build a friendly label: e.g., "AB is typing…", "AB and CD are typing…", "AB, CD and 1 other are typing…"
   const typingIds = Object.keys(typers).filter((id) => id !== selfId)
   const typingNames = typingIds.map(displayName)
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      // Reset height so scrollHeight is correct
+      textarea.style.height = "auto"
+
+      // Calculate line height
+      const lineHeight = parseInt(getComputedStyle(textarea).lineHeight, 10)
+
+      // Calculate max height (4 rows max)
+      const maxHeight = lineHeight * 4
+
+      // Clamp height between 2.5rem and 4 rows
+      textarea.style.height = Math.min(textarea.scrollHeight, maxHeight) + "px"
+    }
+  }, [text])
 
   return (
     <div className="h-[100dvh] p-4 sm:p-6 flex flex-col gap-4">
@@ -171,7 +190,8 @@ export default function RoomChat() {
         </div>
 
         <div className="flex gap-2 pt-2 pb-[env(safe-area-inset-bottom)]">
-          <input
+          <textarea
+            ref={textareaRef}
             value={text}
             onChange={(e) => {
               setText(e.target.value)
@@ -183,7 +203,10 @@ export default function RoomChat() {
             }}
             placeholder="Type a message…"
             className="flex-1 rounded-2xl border px-3 py-2 bg-transparent"
+            rows={1}
+            style={{ minHeight: "2.5rem" }}
           />
+
           <button
             onClick={send}
             className="rounded-2xl px-4 py-2 bg-black text-white dark:bg-white dark:text-black"
