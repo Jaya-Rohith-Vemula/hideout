@@ -4,6 +4,8 @@ import "./index.css"
 import { BrowserRouter } from "react-router-dom"
 import App from "./App"
 import { Toaster } from "sonner"
+import { inject } from "@vercel/analytics"
+inject()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
