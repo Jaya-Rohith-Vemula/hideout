@@ -39,7 +39,6 @@ export default function Landing() {
     try {
       setError(null)
       setCreating(true)
-      // Ask BE for a unique, short ID
       const { id } = await createRoom()
       nav(`/r/${id}`)
     } catch (e) {
@@ -96,7 +95,7 @@ export default function Landing() {
           <div className="container mx-auto px-4 max-w-6xl text-center">
             <div className="inline-flex items-center gap-2 mb-4">
               <Badge variant="secondary" className="rounded-full">
-                No sign‑in required
+                No sign-in required
               </Badge>
               <Badge variant="outline" className="rounded-full">
                 Short room IDs
@@ -117,7 +116,7 @@ export default function Landing() {
                 size="lg"
                 onClick={onCreateRandom}
                 disabled={creating}
-                className="animate-float"
+                className="animate-float [--float-delay:0ms]"
                 style={{ cursor: "pointer" }}
               >
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -127,16 +126,16 @@ export default function Landing() {
                 size="lg"
                 variant="outline"
                 onClick={onFocusCustomInput}
-                className="animate-float"
-                style={{ animationDelay: "200ms", cursor: "pointer" }}
+                className="animate-float [--float-delay:200ms]"
+                style={{ cursor: "pointer" }}
               >
                 <AppWindow className="h-4 w-4 mr-2" /> Custom Room
               </Button>
               <Button
                 size="lg"
                 onClick={onFocusJoinInput}
-                className="animate-float"
-                style={{ animationDelay: "400ms", cursor: "pointer" }}
+                className="animate-float [--float-delay:400ms]"
+                style={{ cursor: "pointer" }}
               >
                 <MousePointerClick className="h-4 w-4 mr-2" /> Join a room
               </Button>
@@ -145,10 +144,10 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* Feature highlights */}
+        {/* Features (with entrance animation) */}
         <section className="py-6">
           <div className="container mx-auto px-4 max-w-6xl grid md:grid-cols-3 gap-4 md:gap-6">
-            <Card className="rounded-2xl">
+            <Card className="rounded-2xl animate-enter [--enter-delay:100ms]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <LockKeyhole className="h-5 w-5" /> Secret by default
@@ -159,7 +158,8 @@ export default function Landing() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="rounded-2xl">
+
+            <Card className="rounded-2xl animate-enter [--enter-delay:200ms]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <LinkIcon className="h-5 w-5" /> Short room IDs
@@ -170,13 +170,14 @@ export default function Landing() {
                 </CardDescription>
               </CardHeader>
             </Card>
-            <Card className="rounded-2xl">
+
+            <Card className="rounded-2xl animate-enter [--enter-delay:300ms]">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Shield className="h-5 w-5" /> Your device, your data
                 </CardTitle>
                 <CardDescription>
-                  Web‑based and lightweight. Designed to run smoothly without
+                  Web-based and lightweight. Designed to run smoothly without
                   requiring heavy resources.
                 </CardDescription>
               </CardHeader>

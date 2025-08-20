@@ -185,6 +185,31 @@
     }
   }
   .animate-float {
-    animation: float 2s ease-in-out infinite;
+    /* break out the shorthand so delay can be set separately */
+    animation-name: float;
+    animation-duration: 2s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-delay: var(--float-delay, 0ms); /* <-- delay via CSS var */
+  }
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(-100px) scale(2);
+      filter: blur(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+  .animate-enter {
+    animation-name: enter;
+    animation-duration: 700ms;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-fill-mode: both;
+    animation-delay: var(--enter-delay, 0ms); /* stagger per-card */
   }
 }
