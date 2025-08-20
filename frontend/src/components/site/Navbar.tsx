@@ -12,16 +12,16 @@ export default function Navbar() {
           <span className="font-semibold tracking-tight">Hide Out</span>
         </div>
         <div className="flex items-center gap-2">
-          <a href="#">
-            <Button variant="ghost" size="sm">
-              Docs
+          <a href="https://x.com/Rohith_Vemula99" target="_blank">
+            <Button variant="ghost" size="sm" style={{ cursor: "pointer" }}>
+              Connect
             </Button>
           </a>
           <a
             href="https://github.com/Jaya-Rohith-Vemula/hideout"
             target="_blank"
           >
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" style={{ cursor: "pointer" }}>
               GitHub
             </Button>
           </a>
