@@ -55,7 +55,7 @@ export default function Landing() {
   const onCreateCustom = async () => {
     const id = normalizeRoomId(customId)
     if (!isValidRoomId(id))
-      return setError("Use 4–6 letters/numbers, e.g. CH4T")
+      return setError("Use 4-6 letters/numbers, e.g. ch4t")
     try {
       setError(null)
       setCreating(true)
@@ -74,7 +74,7 @@ export default function Landing() {
 
   const onJoin = () => {
     const id = normalizeRoomId(joinId)
-    if (!isValidRoomId(id)) return setError("Enter a valid 4–6 char room id")
+    if (!isValidRoomId(id)) return setError("Enter a valid 4-6 char room id")
     nav(`/r/${id}`)
   }
 
@@ -153,7 +153,7 @@ export default function Landing() {
                   <LockKeyhole className="h-5 w-5" /> Secret by default
                 </CardTitle>
                 <CardDescription>
-                  No account, no phone number. Share an unlisted link and you’re
+                  No account, no phone number. Share an unlisted link and you're
                   in.
                 </CardDescription>
               </CardHeader>
@@ -165,7 +165,7 @@ export default function Landing() {
                   <LinkIcon className="h-5 w-5" /> Short room IDs
                 </CardTitle>
                 <CardDescription>
-                  Pick your own 4–6 character ID or let us generate one that’s
+                  Pick your own 4-6 character ID or let us generate one that's
                   easy to share.
                 </CardDescription>
               </CardHeader>
@@ -193,7 +193,7 @@ export default function Landing() {
               <CardHeader>
                 <CardTitle>Create a custom room</CardTitle>
                 <CardDescription>
-                  Use 4–6 letters/numbers (a–z, 0–9)
+                  Use 4-6 letters/numbers (a-z, 0-9)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -232,7 +232,7 @@ export default function Landing() {
               <CardHeader>
                 <CardTitle>Join a room</CardTitle>
                 <CardDescription>
-                  Enter an existing 4–6 character room ID
+                  Enter an existing 4-6 character room ID
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
