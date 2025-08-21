@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import {
   getSocket,
@@ -30,6 +30,11 @@ export default function RoomChat() {
   const [typers, setTypers] = useState<Record<string, number>>({})
   const typingTimer = useRef<number | undefined>(undefined)
   const lastStartSent = useRef(0)
+
+  // refs + state
+  const scrollerRef = useRef<HTMLDivElement | null>(null)
+  const bubbleRef = useRef<HTMLDivElement | null>(null)
+  const [typingPad, setTypingPad] = useState(0)
 
   useEffect(() => {
     const socket = getSocket()
@@ -127,8 +132,35 @@ export default function RoomChat() {
     sendTyping(roomId, selfId, false)
   }
 
+  const isMobileLike = () => {
+    const ua = navigator.userAgent || ""
+    const coarse =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(pointer:coarse)").matches
+    return coarse && (/Android/i.test(ua) || /iPhone|iPad|iPod/i.test(ua))
+  }
+
   const onEnter = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key !== "Enter") return
+    // IME composition (don’t interrupt)
+    if (e.nativeEvent?.isComposing) return
+
+    const mobile = isMobileLike()
+    const metaSend = e.metaKey || e.ctrlKey
+
+    if (metaSend) {
+      e.preventDefault()
+      send()
+      return
+    }
+
+    if (mobile) {
+      // let Return insert a newline on mobile
+      return
+    }
+
+    // desktop: Enter sends, Shift+Enter makes newline
+    if (!e.shiftKey) {
       e.preventDefault()
       send()
     }
@@ -157,6 +189,45 @@ export default function RoomChat() {
     }
   }, [text])
 
+  const typingActive = typingNames.length > 0
+
+  const typingNamesJoined = typingNames.join(",")
+
+  useLayoutEffect(() => {
+    const scroller = scrollerRef.current
+    if (!scroller) return
+
+    if (typingActive) {
+      const h = bubbleRef.current?.offsetHeight ?? 0
+      setTypingPad(h)
+
+      // if user is at (or near) bottom, keep pinned after padding applies
+      const atBottom =
+        Math.abs(
+          scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight
+        ) < 4
+
+      if (atBottom) {
+        // wait a frame so padding takes effect, then pin to bottom
+        requestAnimationFrame(() => {
+          scroller.scrollTop = scroller.scrollHeight
+        })
+      }
+    } else {
+      // remove extra pad; if pinned, stay pinned
+      const atBottom =
+        Math.abs(
+          scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight
+        ) < 4
+      setTypingPad(0)
+      if (atBottom) {
+        requestAnimationFrame(() => {
+          scroller.scrollTop = scroller.scrollHeight
+        })
+      }
+    }
+  }, [typingActive, typingNamesJoined])
+
   return (
     <div className="h-[100dvh] p-4 sm:p-6 flex flex-col gap-4">
       <RoomHeader roomId={roomId} />
@@ -168,8 +239,11 @@ export default function RoomChat() {
 
         <div className="flex flex-col flex-1 justify-end min-h-0 relative">
           <div
-            className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60 scroll-pb-12"
             id="chat-messages"
+            ref={scrollerRef}
+            // ↓ no fixed pb classes; drive via style so it only applies when needed
+            style={{ paddingBottom: typingPad, scrollPaddingBottom: typingPad }}
+            className="flex-1 overflow-y-auto rounded-2xl p-2 bg-neutral-50 dark:bg-neutral-900/60"
           >
             <div className="px-2">
               {messages.map((m) => (
@@ -182,9 +256,15 @@ export default function RoomChat() {
               <div ref={bottomRef} />
             </div>
           </div>
-          {typingNames.length > 0 && (
-            <div className="absolute left-0 right-0 bottom-0 px-4 pb-2 z-10">
-              <TypingBubble names={typingNames} />
+
+          {typingActive && (
+            <div
+              ref={bubbleRef}
+              className="absolute left-0 right-0 bottom-0 px-4 pb-2 z-10 pointer-events-none"
+            >
+              <div className="pointer-events-auto">
+                <TypingBubble names={typingNames} />
+              </div>
             </div>
           )}
         </div>

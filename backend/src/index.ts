@@ -10,7 +10,30 @@ const app = express()
 app.use(express.json({ limit: "64kb" }))
 
 const corsOrigins = getCorsOrigins()
-app.use(cors({ origin: corsOrigins, credentials: false }))
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true)
+
+      // Allow localhost
+      if (origin.startsWith("http://localhost:5173"))
+        return callback(null, true)
+
+      // Allow *.vercel.app and *.trycloudflare.com
+      if (
+        origin.endsWith(".vercel.app") ||
+        origin.endsWith(".trycloudflare.com")
+      ) {
+        return callback(null, true)
+      }
+
+      // Otherwise, block
+      return callback(new Error("Not allowed by CORS"))
+    },
+    credentials: false,
+  })
+)
 
 app.get("/health", (_req, res) => res.json({ ok: true }))
 
