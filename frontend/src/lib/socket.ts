@@ -25,7 +25,7 @@ const envWs = import.meta.env.VITE_WS_URL as string | undefined
 export function getSocket() {
   if (socket) return socket
 
-  socket = io(envWs, {
+  socket = io(envWs?.trim(), {
     transports: ["websocket"],
     withCredentials: false,
     autoConnect: true,
