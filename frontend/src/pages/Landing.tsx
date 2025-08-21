@@ -140,7 +140,6 @@ export default function Landing() {
                 <MousePointerClick className="h-4 w-4 mr-2" /> Join a room
               </Button>
             </div>
-            {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
           </div>
         </section>
 
